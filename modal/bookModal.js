@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+const imageDataSchema = new mongoose.Schema({
+  originalImage: String,
+  imageUrl: String,
+});
 const bookSchema = new mongoose.Schema(
   {
     title: {
@@ -22,6 +26,14 @@ const bookSchema = new mongoose.Schema(
     userId: {
       type: String,
     },
+    category: {
+      type: String,
+      required: [true, "The category Field is required"],
+    },
+    imageUrl: {
+      type: imageDataSchema,
+    },
+    public_id: String,
   },
   { timestamps: true }
 );

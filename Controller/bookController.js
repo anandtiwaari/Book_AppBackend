@@ -1,5 +1,6 @@
 const bookModal = require("../modal/bookModal");
-
+const cloudinary = require("../utils/cloudinary");
+// const cloudinaryyy = require("cloudinary");
 const getAllBooks = async (req, res) => {
   console.log(req.userId, "show the request user id");
   try {
@@ -12,8 +13,10 @@ const getAllBooks = async (req, res) => {
 };
 
 const AddBooks = async (req, res) => {
-  const { title, author, price, isFavourite } = req.body;
-
+  const { title, author, price, isFavourite, category } = req.body;
+  console.log(req.file, "file requesr check");
+  const result = await cloudinary.uploader.upload(req?.file?.path);
+  console.log(result, "show the result here  of boks---");
   try {
     let newBookAdd = new bookModal({
       title: title,
@@ -21,17 +24,21 @@ const AddBooks = async (req, res) => {
       price: price,
       isFavourite: isFavourite,
       userId: req.userId,
+      category: category,
+      imageUrl: {
+        imageUrl: result.url,
+        originalImage: result.original_filename,
+        public_id: result.public_id,
+      },
     });
-    let response = await newBookAdd.save();
+    const response = await newBookAdd.save();
     console.log(newBookAdd, "newBookAdd");
-    console.log(response, "show the added response");
     console.log(req.userId, "newBookAdd user id");
     console.log(`Books have been added successFully`);
-    res.status(201).json({
-      message: "Books have been added successFully",
-      data: response,
-    });
-  } catch (error) { 
+    res
+      .status(201)
+      .json({ message: `Data saved successFully`, user: response });
+  } catch (error) {
     res.status(500).send(error.message);
     console.log(error);
   }
@@ -62,12 +69,33 @@ const deleteBook = async (req, res) => {
 const updateBooks = async (req, res) => {
   let id = req.params.id;
   let payload = req.body;
+  console.log(payload, "payloadpayload ---");
   let userId = req.userId;
   console.log(userId, "show the userID");
-  console.log(payload, "payloadpayload");
+  console.log(req.file, "show the req file here");
+  let result;
+  if (req.file) {
+    result = await cloudinary.uploader.upload(req.file.path, {
+      public_id: req?.body?.public_id,
+      overwrite: true,
+    });
+    console.log(result, "show the result here uiuiuiu");
+  }
   try {
-    await bookModal.findByIdAndUpdate(id, payload);
-    res.send("Data Updated SuccessFully");
+    const responseUpdate = await bookModal.findByIdAndUpdate(id, {
+      ...payload,
+      imageUrl: { ...payload?.imageUrl, imageUrl: result?.url },
+    });
+    let updatedResponseData = JSON.parse(JSON.stringify(responseUpdate));
+    updatedResponseData = {
+      ...updatedResponseData,
+      imageUrl: { ...updatedResponseData?.imageUrl, imageUrl: result?.url },
+    };
+    console.log(updatedResponseData, "updatedResponseData");
+    res.json({
+      message: "Data Updated SuccessFully",
+      data: updatedResponseData,
+    });
   } catch (error) {
     res.status(500).send(error?.message);
   }

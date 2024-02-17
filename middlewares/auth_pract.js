@@ -28,6 +28,9 @@ const auth_pract = async (req, res, next) => {
     if (!token) {
       return res.status(400).json({ message: "User not authorized" });
     }
+    if (token == null) {
+      return;
+    }
     let verifyToken = jwt.verify(token, SECRET_KEY);
     console.log(verifyToken);
     req.userId = verifyToken.id;

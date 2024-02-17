@@ -65,10 +65,14 @@ const userModal = require("../modal/userModal");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = "BOOK_APP_KEY";
+const cloudinary = require("../utils/cloudinary");
 
 const Up = async (req, res) => {
   try {
+    console.log(req.file, "show the signup File here now");
     const { username, email, password } = req.body;
+    const results = await cloudinary.uploader.upload(req.file.path);
+    console.log(results, "show the results here");
     const existingUser = await userModal.findOne({ email: email });
     if (existingUser) {
       return res.status(400).json({ message: "user already registered" });
@@ -78,6 +82,8 @@ const Up = async (req, res) => {
       username: username,
       password: hashedPassword,
       email: email,
+      imageUrl: results.url,
+      public_id: results.public_id,
     });
     await result.save();
     console.log(result._id.toString(), "show id in the signup controller");
@@ -123,7 +129,40 @@ const In = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    if (req.file) {
+      result = await cloudinary.uploader.upload(req.file.path, {
+        public_id: req?.body?.public_id,
+        overwrite: true,
+      });
+      console.log(result, "show the result here uiuiuiu");
+    }
+    if (!userId) {
+      return res.status(404).json({ message: "Something went wrong" });
+    }
+    const response = await userModal.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          imageUrl: result?.url,
+        },
+      },
+      { upsert: true }
+    );
+    return res
+      .status(200)
+      .json({ message: "Profile updated successfully", data: result.url });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "Something went wrong" });
+  }
+};
+
 module.exports = {
   Up,
   In,
+  updateProfile,
 };

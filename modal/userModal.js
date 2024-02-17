@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "password is required"],
   },
+  imageUrl: String,
+  public_id: String,
 });
 
 const UserModal = new mongoose.model("userModal", userSchema);
