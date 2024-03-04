@@ -12,11 +12,45 @@ const getAllBooks = async (req, res) => {
   }
 };
 
+// const AddBooks = async (req, res) => {
+//   const { title, author, price, isFavourite, category } = req.body;
+//   console.log(req.file, "file requesr check");
+//   const result = await cloudinary.uploader.upload(req?.file?.path);
+//   console.log(result, "show the result here  of boks---");
+//   try {
+//     let newBookAdd = new bookModal({
+//       title: title,
+//       author: author,
+//       price: price,
+//       isFavourite: isFavourite,
+//       userId: req.userId,
+//       category: category,
+//       imageUrl: {
+//         imageUrl: result.url,
+//         originalImage: result.original_filename,
+//         public_id: result.public_id,
+//       },
+//     });
+//     const response = await newBookAdd.save();
+//     console.log(newBookAdd, "newBookAdd");
+//     console.log(req.userId, "newBookAdd user id");
+//     console.log(`Books have been added successFully`);
+//     res
+//       .status(201)
+//       .json({ message: `Data saved successFully`, user: response });
+//   } catch (error) {
+//     res.status(500).send(error.message);
+//     console.log(error);
+//   }
+// };
+
 const AddBooks = async (req, res) => {
   const { title, author, price, isFavourite, category } = req.body;
-  console.log(req.file, "file requesr check");
-  const result = await cloudinary.uploader.upload(req?.file?.path);
-  console.log(result, "show the result here  of boks---");
+  var result;
+  if (req?.file) {
+    result = await cloudinary.uploader.upload(req?.file?.path);
+    console.log(result, "show the result here  of boks---");
+  }
   try {
     let newBookAdd = new bookModal({
       title: title,
@@ -26,9 +60,9 @@ const AddBooks = async (req, res) => {
       userId: req.userId,
       category: category,
       imageUrl: {
-        imageUrl: result.url,
-        originalImage: result.original_filename,
-        public_id: result.public_id,
+        imageUrl: result?.url,
+        originalImage: result?.original_filename,
+        public_id: result?.public_id,
       },
     });
     const response = await newBookAdd.save();
